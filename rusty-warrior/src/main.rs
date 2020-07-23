@@ -2,7 +2,6 @@ use std::process::Command;
 use notify_rust::Notification;
 
 fn main() {
-    println!("Hello, world!");
     let output = Command::new("task")
                  .arg("export")
                  .arg("+READY")
@@ -20,7 +19,7 @@ fn main() {
                 println!("the notification window was closed")
             }
         });
-    //println!("{:?}", output);
-
+    let json_read: serde_json::Value = serde_json::from_str(&String::from_utf8(output.stdout).unwrap()).expect("JSON failed");
+    println!("{:?}", json_read);
 }
 
