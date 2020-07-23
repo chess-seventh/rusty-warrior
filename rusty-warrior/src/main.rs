@@ -1,6 +1,11 @@
 use std::process::Command;
 use notify_rust::Notification;
 
+struct Task {
+    uuid: String,
+    description: String,
+}
+
 fn main() {
     let output = Command::new("task")
                  .arg("export")
