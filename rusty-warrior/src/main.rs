@@ -1,9 +1,19 @@
 use std::process::Command;
 use notify_rust::Notification;
+use serde::{Deserialize, Serialize};
 
+
+#[derive(Serialize, Deserialize)]
 struct Task {
-    uuid: String,
     description: String,
+    entry: String,
+    id: u8,
+    modified: String,
+    priority: String,
+    project: String,
+    status: String,
+    tags: Vec<String>,
+    uuid: String
 }
 
 fn main() {
