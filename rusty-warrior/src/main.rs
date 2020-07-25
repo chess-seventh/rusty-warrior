@@ -1,7 +1,5 @@
 use std::process::Command;
-use notify_rust::Notification;
 use serde::{Deserialize, Serialize};
-use serde_json::json;
 use std::fmt;
 
 
@@ -47,20 +45,32 @@ fn main() {
         .output()
         .expect("failed to execute process");
 
-    let task_read: serde_json::Value = serde_json::from_str(&String::from_utf8(output.stdout).unwrap()).expect("JSON failed");
+    let tasks = serde_json::from_str::<Vec<Task>>(&String::from_utf8(output.stdout).unwrap())
+        .expect("Invalid JSON")
+        .into_iter()
+        .filter(|task|
+            task.project
+            .as_ref()
+            .map_or(false, |p| p.contains("bm"))
+        )
+        .collect::<Vec<_>>();
 
-    let mut struct_tasks = Vec::new();
+    println!("{:?}", tasks);
 
-    for task in task_read.as_array().iter() {
-        for t in task.iter() {
-            struct_tasks.push(serialize_tasks(json!(t.to_owned())).unwrap());
-        }
-    }
+    //let task_read: serde_json::Value = serde_json::from_str(&String::from_utf8(output.stdout).unwrap()).expect("JSON failed");
 
-    struct_tasks.sort_by(|a, b| b.urgency.partial_cmp(&a.urgency).unwrap());
-    println!("{}", struct_tasks[0]);
-    println!("{}", struct_tasks[1]);
-    println!("{}", struct_tasks[2]);
+    //let mut struct_tasks = Vec::new();
+
+    //for task in task_read.as_array().iter() {
+        //for t in task.iter() {
+            //struct_tasks.push(serialize_tasks(json!(t.to_owned())).unwrap());
+        //}
+    //}
+
+    //struct_tasks.sort_by(|a, b| b.urgency.partial_cmp(&a.urgency).unwrap());
+    //println!("{}", struct_tasks[0]);
+    //println!("{}", struct_tasks[1]);
+    //println!("{}", struct_tasks[2]);
 
     //for i in struct_tasks.iter() {
         //println!("{}", i);
