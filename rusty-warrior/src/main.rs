@@ -24,33 +24,39 @@ impl fmt::Display for Task {
 
 fn main() {
 
+    // Read taskwarrior tasks from CLI
     let output = Command::new("task")
         .arg("export")
         .arg("+READY")
         .output()
         .expect("failed to execute process");
 
+    // Format taskwarrior tasks in JSON
     let mut tasks = serde_json::from_str::<Vec<Task>>(&String::from_utf8(output.stdout).unwrap())
         .expect("Invalid JSON")
         .into_iter()
         .filter(|task| task.project.contains("bm").not())
         .collect::<Vec<_>>();
 
+    // Sort tasks by urgency
     tasks.sort_by(|a, b| b.urgency.partial_cmp(&a.urgency).unwrap());
 
     for task in tasks[0..3].iter()  {
+        let mut body = String::new();
+        body.push_str("id: ");
+        body.push_str(&task.id.to_string());
+        body.push_str("\nproject: ");
+        body.push_str(&task.project);
+        body.push_str("\nurgency: ");
+        if task.priority.is_some() {
+            body.push_str(&task.priority.as_ref().unwrap().to_owned());
+        }
         Notification::new()
             .summary(&task.description)
             .hint(notify_rust::Hint::Transient(true))
-            .body(&String::from(&task.project.push_str(&task.id.to_string())))
+            .body(&body)
             .appname("taskwarrior")
             .show()
             .unwrap();
-
-        //handle.wait_for_action(|action| {
-            //if "__closed" == action {
-                //println!("{}", &task.urgency)
-            //}
-        //});
     }
 }
