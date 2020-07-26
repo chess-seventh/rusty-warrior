@@ -1,7 +1,7 @@
 use std::process::Command;
 use serde::{Deserialize, Serialize};
 use std::fmt;
-use notify_rust::{Notification, Hint};
+use notify_rust::{Notification};
 use std::ops::Not;
 
 
@@ -23,6 +23,7 @@ impl fmt::Display for Task {
 }
 
 fn main() {
+
     let output = Command::new("task")
         .arg("export")
         .arg("+READY")
@@ -38,22 +39,18 @@ fn main() {
     tasks.sort_by(|a, b| b.urgency.partial_cmp(&a.urgency).unwrap());
 
     for task in tasks[0..3].iter()  {
-        println!("{:?}", task.urgency);
-
-
-        let handle: notify_rust::NotificationHandle = Notification::new()
+        Notification::new()
             .summary(&task.description)
             .hint(notify_rust::Hint::Transient(true))
-            //.hint(Hint::Category("taskwarrior".to_owned()))
-            .body(&task.project)
+            .body(&String::from(&task.project.push_str(&task.id.to_string())))
             .appname("taskwarrior")
             .show()
             .unwrap();
 
-        handle.wait_for_action(|action| {
-            if "__closed" == action {
-                println!("the notification window was closed")
-            }
-        });
+        //handle.wait_for_action(|action| {
+            //if "__closed" == action {
+                //println!("{}", &task.urgency)
+            //}
+        //});
     }
 }
