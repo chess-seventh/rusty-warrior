@@ -51,6 +51,7 @@ fn main() {
         if task.priority.is_some() {
             body.push_str(&task.priority.as_ref().unwrap().to_owned());
         }
+
         Notification::new()
             .summary(&task.description)
             .hint(notify_rust::Hint::Transient(true))
