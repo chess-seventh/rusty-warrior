@@ -1,7 +1,7 @@
 use std::process::Command;
 use serde::{Deserialize, Serialize};
 use std::fmt;
-use notify_rust::Notification;
+use notify_rust::{Notification, Hint};
 use std::ops::Not;
 
 
@@ -35,21 +35,22 @@ fn main() {
         .filter(|task| task.project.contains("bm").not())
         .collect::<Vec<_>>();
 
-
     for task in tasks.iter()  {
-        println!("{:?}", task);
+        //println!("{:?}", task.description);
+
+        let handle: notify_rust::NotificationHandle = Notification::new()
+            .summary(&task.description)
+            .hint(notify_rust::Hint::Transient(true))
+            //.hint(Hint::Category("taskwarrior".to_owned()))
+            .body(&task.project)
+            .appname("taskwarrior")
+            .show()
+            .unwrap();
+
+        handle.wait_for_action(|action| {
+            if "__closed" == action {
+                println!("the notification window was closed")
+            }
+        });
     }
-
-    //let handle: notify_rust::NotificationHandle = Notification::new()
-        //.summary("Notification that will go away")
-        //.hint(notify_rust::Hint::Transient(true))
-        //.body("Lorem\nIpsum")
-        //.show()
-        //.unwrap();
-
-    //handle.wait_for_action(|action| {
-        //if "__closed" == action {
-            //println!("the notification window was closed")
-        //}
-    //});
 }
