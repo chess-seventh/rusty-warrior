@@ -29,14 +29,17 @@ fn main() {
         .output()
         .expect("failed to execute process");
 
-    let tasks = serde_json::from_str::<Vec<Task>>(&String::from_utf8(output.stdout).unwrap())
+    let mut tasks = serde_json::from_str::<Vec<Task>>(&String::from_utf8(output.stdout).unwrap())
         .expect("Invalid JSON")
         .into_iter()
         .filter(|task| task.project.contains("bm").not())
         .collect::<Vec<_>>();
 
-    for task in tasks.iter()  {
-        //println!("{:?}", task.description);
+    tasks.sort_by(|a, b| b.urgency.partial_cmp(&a.urgency).unwrap());
+
+    for task in tasks[0..3].iter()  {
+        println!("{:?}", task.urgency);
+
 
         let handle: notify_rust::NotificationHandle = Notification::new()
             .summary(&task.description)
