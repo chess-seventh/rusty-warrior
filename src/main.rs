@@ -22,7 +22,19 @@ struct Task {
 
 impl fmt::Display for Task {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "description: {}\nid: {}\nproject: {}\nstatus: {}\nurgency: {}\nuuid: {}", self.description, self.id, self.project, self.status, self.urgency, self.uuid)
+        write!(f, "description: {}\n
+               id: {}\n
+               project: {}\n
+               status: {}\n
+               urgency: {}\n
+               uuid: {}",
+               self.description,
+               self.id,
+               self.project,
+               self.status,
+               self.urgency,
+               self.uuid
+              )
     }
 }
 
