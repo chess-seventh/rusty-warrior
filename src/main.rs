@@ -30,42 +30,13 @@ fn main() {
 
     let mut settings = config::Config::default();
     settings.merge(config::File::with_name("Settings")).unwrap();
-
     let settings_parsed = settings.try_into::<HashMap<String, String>>().unwrap();
 
-    let nb_tasks : usize;
-    let mut appname = String::new();
-    let mut exclude_project = String::new();
+    let nb_tasks = settings_parsed.get("tasks_to_show").map_or(3, |nb| nb.parse().unwrap());
 
-    // Verify that there is a proper value in the Settings.toml file.
-    match settings_parsed.get("tasks_to_show") {
-        Some(nb) => {
-            nb_tasks = nb.parse().unwrap();
-        }
-        None => {
-            nb_tasks = 3;
-        }
-    }
+    let appname = settings_parsed.get("dunst_appname").map_or(String::new(), |app| app.parse().unwrap());
 
-    // Verify that there is a proper value in the Settings.toml file.
-    match settings_parsed.get("exclude_project") {
-        Some(proj) => {
-            exclude_project = proj.parse().unwrap();
-        }
-        None       => {
-            exclude_project.push_str("");
-        }
-    }
-
-    // Verify that there is a proper value in the Settings.toml file.
-    match settings_parsed.get("dunst_appname") {
-        Some(app) => {
-            appname = app.parse().unwrap();
-        }
-        None       => {
-            appname.push_str("");
-        }
-    }
+    let exclude_project = settings_parsed.get("exclude_project").map_or(String::new(), |proj| proj.parse().unwrap());
 
     // Read taskwarrior tasks from CLI
     let output = Command::new("task")
@@ -74,22 +45,19 @@ fn main() {
         .output()
         .expect("failed to execute process");
 
-    // Format taskwarrior tasks in JSON
-    let mut tasks : std::vec::Vec<Task>;
-
     // Check if there's a filter to apply
-    if exclude_project.len() > 0 {
-        tasks = serde_json::from_str::<Vec<Task>>(&String::from_utf8(output.stdout).unwrap())
+    let mut tasks : std::vec::Vec<Task> = if exclude_project.len() > 0 {
+        serde_json::from_str::<Vec<Task>>(&String::from_utf8(output.stdout).unwrap())
             .expect("Invalid JSON")
             .into_iter()
             .filter(|task| task.project.contains(&exclude_project).not())
-            .collect::<Vec<_>>();
+            .collect::<Vec<_>>()
     } else {
-        tasks = serde_json::from_str::<Vec<Task>>(&String::from_utf8(output.stdout).unwrap())
+        serde_json::from_str::<Vec<Task>>(&String::from_utf8(output.stdout).unwrap())
             .expect("Invalid JSON")
             .into_iter()
-            .collect::<Vec<_>>();
-    }
+            .collect::<Vec<_>>()
+    };
 
     // Sort tasks by urgency
     tasks.sort_by(|a, b| b.urgency.partial_cmp(&a.urgency).unwrap());
