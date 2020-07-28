@@ -1,0 +1,4 @@
+tasks_to_show = 3
+exclude_project = "bm"
+dunst_appname = "taskwarrior"
+
