@@ -44,7 +44,7 @@ or
 $ cargo run
 ```
 
-Then add the executable to you `$PATH`.
+Add the executable to you `$PATH`, and copy/move the `Settings.toml` file to the directory where `rusty-warrior` is stored.
 
 
 ## Contributing
