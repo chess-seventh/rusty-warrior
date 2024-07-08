@@ -1,9 +1,10 @@
-extern crate config;
+// extern crate config;
+use config::Config;
 
 use std::process::Command;
 use serde::{Deserialize, Serialize};
 use std::fmt;
-use notify_rust::{Notification};
+use notify_rust::Notification;
 use std::ops::Not;
 
 use std::collections::HashMap;
@@ -40,9 +41,17 @@ impl fmt::Display for Task {
 
 fn main() {
 
-    let mut settings = config::Config::default();
-    settings.merge(config::File::with_name("Settings")).unwrap();
-    let settings_parsed = settings.try_into::<HashMap<String, String>>().unwrap();
+    let settings = Config::builder()
+        .add_source(config::File::with_name("Settings"))
+        .add_source(config::Environment::with_prefix("tasks_to_show"))
+        .add_source(config::Environment::with_prefix("dunst_appname"))
+        .add_source(config::Environment::with_prefix("exclude_project"))
+        .build()
+        .unwrap();
+
+    // let mut settings = config::Config::default();
+    // settings.merge(config::File::with_name("Settings")).unwrap();
+    let settings_parsed = settings.try_deserialize::<HashMap<String, String>>().unwrap();
 
     let nb_tasks = settings_parsed.get("tasks_to_show").map_or(3, |nb| nb.parse().unwrap());
 
@@ -58,16 +67,16 @@ fn main() {
         .expect("failed to execute process");
 
     // Check if there's a filter to apply
-    let mut tasks : std::vec::Vec<Task> = if exclude_project.len() > 0 {
+    let mut tasks : std::vec::Vec<Task> = if exclude_project.is_empty() {
         serde_json::from_str::<Vec<Task>>(&String::from_utf8(output.stdout).unwrap())
             .expect("Invalid JSON")
             .into_iter()
-            .filter(|task| task.project.contains(&exclude_project).not())
             .collect::<Vec<_>>()
     } else {
         serde_json::from_str::<Vec<Task>>(&String::from_utf8(output.stdout).unwrap())
             .expect("Invalid JSON")
             .into_iter()
+            .filter(|task| task.project.contains(&exclude_project).not())
             .collect::<Vec<_>>()
     };
 
@@ -75,7 +84,7 @@ fn main() {
     tasks.sort_by(|a, b| b.urgency.partial_cmp(&a.urgency).unwrap());
 
     // Send tasks notification to userspace
-    for task in tasks[0..nb_tasks].iter()  {
+    for task in &tasks[0..nb_tasks]  {
         let mut body = String::new();
         body.push_str("id: ");
         body.push_str(&task.id.to_string());

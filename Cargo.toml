@@ -1,20 +1,19 @@
 [package]
 name = "rusty-warrior"
-version = "0.1.0"
+version = "0.2.0"
 authors = ["chess7th"]
 edition = "2018"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-serde = { version = "1.0", features = ["derive"] }
-serde_json = "1.0"
-notify-rust = "4"
-config = "0.9"
+serde = { version = "1.0.204", features = ["derive"] }
+serde_json = "1.0.120"
+notify-rust = "4.11.0"
+config = "0.14.0"
 
 [profile.dev]
 opt-level = 0
 
 [profile.release]
 opt-level = 3
-
